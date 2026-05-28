@@ -51,7 +51,7 @@ interface DialogTransactionProps {
 
 export default function DialogTransaction({ onSuccess }: DialogTransactionProps) {
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
       description: "",

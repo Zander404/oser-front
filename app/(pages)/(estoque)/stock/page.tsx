@@ -49,7 +49,7 @@ const initialServices = [
     id: 1,
     cliente: "Cliente 1",
     services: [{
-      name: "teste 1", description: "Consultoria Metereologica", status: "Ativo", price: "54", duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
+      name: "teste 1", description: "Consultoria Metereologica", status: "Ativo", price: 54, duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
     }],
     status: "Pendente",
     date: "26/05/2026"

@@ -43,7 +43,7 @@ interface DialogServiceProps {
 
 export default function DialogService({ title, icon: Icon, onSuccess }: DialogServiceProps) {
   const form = useForm<ServiceFormValues>({
-    resolver: zodResolver(serviceSchema),
+    resolver: zodResolver(serviceSchema) as any,
     defaultValues: {
       name: "",
       description: "",

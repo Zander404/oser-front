@@ -35,7 +35,7 @@ interface DialogProductProps {
 
 export default function DialogProduct({ onSuccess }: DialogProductProps) {
   const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: "",
       category: "",
