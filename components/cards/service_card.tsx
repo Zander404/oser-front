@@ -1,6 +1,8 @@
 import { Archive, Box, Edit, ShoppingCart, Trash2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import DialogService from "../dialogs/dialog_service";
+import DialogOrder from "../dialogs/dialog_order";
 
 interface ServiceCardProps {
   name: string;
@@ -79,13 +81,9 @@ export default function ServiceCard(props: ServiceCardProps) {
       </div>
 
       <div className="flex md:flex-row flex-col justify-end pt-3">
-        <Button className="rounded-full md:w-fit h-11 bg-slate-800 hover:shadow-2xl">
-          <ShoppingCart /> Criar Pedido
-        </Button>
+        <DialogOrder />
 
-        <Button className="rounded-full md:w-11 h-11 bg-slate-400 hover:shadow-2xl hover:bg-amber-500">
-          <Edit />
-        </Button>
+        <DialogService title={""} icon={Edit} />
 
         <Button className="rounded-full md:w-11 h-11 bg-slate-400  hover:shadow-2xl hover:bg-destructive">
           <Trash2 />

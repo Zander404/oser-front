@@ -1,4 +1,5 @@
 import { ChartBar } from "@/components/charts/bar_chart";
+import DialogTransaction from "@/components/dialogs/dialog_transaction";
 import CashFlowStats from "@/components/stats/cash_flow";
 import TransactionTable from "@/components/tables/transaction_table";
 import { Button } from "@/components/ui/button";
@@ -34,11 +35,7 @@ export default function Page() {
           </Select>
 
 
-          <Button variant={"default"} className="flex w-fit h-12 flex-row justify-around">
-            <PlusIcon />
-            Nova Transação
-          </Button>
-
+          <DialogTransaction />
         </div>
       </div>
 

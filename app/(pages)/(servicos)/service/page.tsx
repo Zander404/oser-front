@@ -1,6 +1,7 @@
 import ServiceCard from "@/components/cards/service_card";
 import ServiceInfoCard from "@/components/cards/service_info_card";
 import { description } from "@/components/charts/bar_chart";
+import DialogService from "@/components/dialogs/dialog_service";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
@@ -35,10 +36,7 @@ export default function Page() {
 
 
         <div className="flex flex-row justify-end align-middle space-x-4">
-          <Button className="w-fit h-11">
-            <Plus />
-            Novo Serviço
-          </Button>
+          <DialogService title="Novo Servico" icon={Plus} />
         </div>
       </div>
 

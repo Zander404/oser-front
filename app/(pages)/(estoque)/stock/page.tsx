@@ -1,5 +1,8 @@
 import ProductCard from "@/components/cards/product_stock_card";
 import StockServiceInfoCard from "@/components/cards/stock_service_info_card";
+import DialogHistory from "@/components/dialogs/dialog_history";
+import DialogNotification from "@/components/dialogs/dialog_notification";
+import DialogProduct from "@/components/dialogs/dialog_product";
 import StockStats from "@/components/stats/stock_stats";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -104,19 +107,16 @@ export default function Page() {
 
 
         <div className="flex flex-row justify-end align-middle space-x-4">
-          <Button variant={"outline"} className="h-11 w-11 hover:shadow-xl rounded-full ">
-            <Bell />
-          </Button>
+          <DialogNotification />
 
-          <Button className="w-fit h-11 rounded-lg hover:shadow-xl">
-            <History />
-            Historico
-          </Button>
+          <DialogHistory />
 
-          <Button className="w-fit h-11 rounded-lg hover:shadow-xl">
-            <Plus />
-            Novo Produto
-          </Button>
+          {/* <Button className="w-fit h-11 rounded-lg hover:shadow-xl"> */}
+          {/*   <Plus /> */}
+          {/*   Novo Produto */}
+          {/* </Button> */}
+
+          <DialogProduct />
         </div>
       </div>
 
