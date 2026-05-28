@@ -1,7 +1,6 @@
 ARG PLATFORM=linux/amd64
 ARG IMAGE=node:20-alpine
 
-
 FROM --platform=$PLATFORM $IMAGE AS build
 WORKDIR /app
 
