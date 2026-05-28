@@ -1,80 +1,146 @@
+"use client"
+
 import { Info, ShoppingCart } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "../ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Field, FieldGroup } from "../ui/field";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Field, FieldError, FieldGroup } from "../ui/field";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { toast } from "sonner";
 
-const teste: any = [];
+const orderSchema = z.object({
+  customerName: z.string().min(1, "Nome do cliente é obrigatório"),
+  serviceId: z.string().min(1, "Selecione um serviço"),
+  date: z.string().min(1, "Data é obrigatória"),
+  notes: z.string().optional(),
+});
 
-export default function DialogOrder() {
+type OrderFormValues = z.infer<typeof orderSchema>;
+
+interface DialogOrderProps {
+  onSuccess?: (data: OrderFormValues) => void;
+  defaultServiceId?: string;
+}
+
+export default function DialogOrder({ onSuccess, defaultServiceId }: DialogOrderProps) {
+  const form = useForm<OrderFormValues>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: {
+      customerName: "",
+      serviceId: defaultServiceId || "",
+      date: new Date().toISOString().split("T")[0],
+      notes: "",
+    },
+  });
+
+  function onSubmit(data: OrderFormValues) {
+    console.log(data);
+    onSuccess?.(data);
+    toast.success("Pedido criado com sucesso!");
+    form.reset();
+  }
+
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => !open && form.reset()}>
+      <DialogTrigger asChild>
+        <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
+          <ShoppingCart className="w-5 h-5 mr-2" /> Criar Pedido
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Criar Novo Pedido</DialogTitle>
+          <DialogDescription className="flex items-center p-3 bg-emerald-50 text-emerald-900 rounded-lg border border-emerald-100">
+            <Info className="w-5 h-5 mr-2" />
+            <span>Preencha os dados do cliente e selecione o serviço solicitado.</span>
+          </DialogDescription>
+        </DialogHeader>
 
-      <form>
-        <DialogTrigger asChild>
-          <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
-            <ShoppingCart /> Criar Pedido
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>
-              <h1 className="font-bold text-2xl">
-                Criar Novo Pedido
-              </h1>
-            </DialogTitle>
-
-            <DialogDescription className="flex flex-row w-full p-2 space-x-3 text-center bg-emerald-400/10 text-emerald-950 rounded-full ">
-              <Info />
-              <div className="flex space-x-3 flex-row">
-                <label> Servico:</label>
-                <span className="font-bold">
-                  Nome do Servico
-                </span>
-              </div>
-            </DialogDescription>
-
-          </DialogHeader>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FieldGroup>
-
             <Field>
-              <Label htmlFor="name-1">Name</Label>
-              <Input id="name-1" name="name" defaultValue={"Teste"} />
+              <Label htmlFor="customer_name">Nome do Cliente</Label>
+              <Input
+                id="customer_name"
+                placeholder="Ex: João da Silva"
+                {...form.register("customerName")}
+              />
+              <FieldError errors={[form.formState.errors.customerName]} />
             </Field>
 
+            <Field>
+              <Label>Serviço</Label>
+              <Controller
+                name="serviceId"
+                control={form.control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione um serviço" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Serviços Disponíveis</SelectLabel>
+                        <SelectItem value="serv-1">Consultoria Meteorológica</SelectItem>
+                        <SelectItem value="serv-2">Montagem de Equipamentos</SelectItem>
+                        <SelectItem value="serv-3">Manutenção Preventiva</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError errors={[form.formState.errors.serviceId]} />
+            </Field>
+
+            <Field>
+              <Label htmlFor="order_date">Data do Pedido</Label>
+              <Input id="order_date" type="date" {...form.register("date")} />
+              <FieldError errors={[form.formState.errors.date]} />
+            </Field>
+
+            <Field>
+              <Label htmlFor="order_notes">Observações (Opcional)</Label>
+              <Input
+                id="order_notes"
+                placeholder="Detalhes adicionais..."
+                {...form.register("notes")}
+              />
+            </Field>
           </FieldGroup>
-
-          <div>
-            <h2>Produtos Necessários</h2>
-            <div className="-mx-4 no-scrollbar max-h[50vh] overflow-y-auto px-4">
-              {
-                Array.isArray(teste) ? (
-                  <div className="flex flex-col p-4 bg-slate-100/60  rounded-full">
-                    <label className="font-medium">
-                      Produto A
-                    </label>
-                    <span>Quantidade:  2</span>
-                  </div>
-                ) : (
-                  <div>
-                    SEM PRODUTO
-                  </div>
-
-                )
-              }
-            </div>
-          </div>
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant={"outline"} className="text-slate-50 hover:text-slate-50 bg-destructive hover:bg-red-700 rounded-md">Close</Button>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
             </DialogClose>
-            <Button variant={"secondary"} className="text-slate-950 bg-slate-100 rounded-md">Criar Pedido</Button>
+            <Button type="submit" className="bg-slate-800">
+              Confirmar Pedido
+            </Button>
           </DialogFooter>
-        </DialogContent>
-
-      </form>
-    </Dialog >
-  )
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }

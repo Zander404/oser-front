@@ -1,7 +1,7 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { TrendingUp, TrendingDown } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -20,47 +20,73 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 
-
 const chartData = [
-  { month: "January", lucro: 186, despesas: 80 },
-  { month: "February", lucro: 305, despesas: 200 },
-  { month: "March", lucro: 237, despesas: 120 },
-  { month: "April", lucro: 73, despesas: 190 },
-  { month: "May", lucro: 209, despesas: 130 },
-  { month: "June", lucro: 214, despesas: 140 },
+  { month: "Janeiro", lucro: 1200, despesas: 3300 },
+  { month: "Fevereiro", lucro: 1400, despesas: 3800 },
+  { month: "Março", lucro: 700, despesas: 4100 },
+  { month: "Abril", lucro: 2200, despesas: 3900 },
+  { month: "Maio", lucro: 1700, despesas: 4200 },
+  { month: "Junho", lucro: 2700, despesas: 4500 },
 ]
 
 const chartConfig = {
   lucro: {
-    label: "lucro",
-    color: "var(--chart-1)",
+    label: "Lucro Líquido",
+    color: "hsl(var(--chart-1))",
   },
   despesas: {
-    label: "despesas",
-    color: "var(--chart-2)",
+    label: "Custos Totais",
+    color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig
 
 export function ChartArea() {
   return (
-    <Card>
+    <Card className="shadow-sm border-slate-200">
       <CardHeader>
-        <CardTitle>Receitas Vs Lucros</CardTitle>
+        <CardTitle className="text-xl">Análise de Lucratividade</CardTitle>
         <CardDescription>
-          Mostrar o Lucro dos ultimos 6 meses
+          Visão acumulada de Lucro e Despesas (Jan - Jun 2026)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <AreaChart
             accessibilityLayer
             data={chartData}
             margin={{
               left: 12,
               right: 12,
+              top: 10
             }}
           >
-            <CartesianGrid vertical={false} />
+            <defs>
+              <linearGradient id="fillLucro" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-lucro)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-lucro)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+              <linearGradient id="fillDespesas" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-despesas)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-despesas)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.5} />
             <XAxis
               dataKey="month"
               tickLine={false}
@@ -68,22 +94,28 @@ export function ChartArea() {
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
+            <YAxis 
+              tickLine={false} 
+              axisLine={false} 
+              tickMargin={10}
+              tickFormatter={(value) => `R$ ${value}`}
+            />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
+              content={<ChartTooltipContent indicator="dot" />}
             />
             <Area
               dataKey="despesas"
-              type="natural"
-              fill="var(--color-despesas)"
+              type="monotone"
+              fill="url(#fillDespesas)"
               fillOpacity={0.4}
               stroke="var(--color-despesas)"
               stackId="a"
             />
             <Area
               dataKey="lucro"
-              type="natural"
-              fill="var(--color-lucro)"
+              type="monotone"
+              fill="url(#fillLucro)"
               fillOpacity={0.4}
               stroke="var(--color-lucro)"
               stackId="a"
@@ -93,7 +125,17 @@ export function ChartArea() {
         </ChartContainer>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="border-t pt-4">
+        <div className="flex w-full items-start gap-2 text-sm">
+          <div className="grid gap-2">
+            <div className="flex items-center gap-2 font-medium leading-none">
+              Crescimento de 12% na margem <TrendingUp className="h-4 w-4 text-emerald-500" />
+            </div>
+            <div className="flex items-center gap-2 leading-none text-muted-foreground">
+              Janeiro - Junho 2026
+            </div>
+          </div>
+        </div>
       </CardFooter>
     </Card>
   )
