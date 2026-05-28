@@ -1,4 +1,4 @@
-import { Archive, Box, Edit, ShoppingCart, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
@@ -6,76 +6,68 @@ import { Field, FieldLabel } from "../ui/field";
 
 interface ProductCardProps {
   name: string;
-  description: string;
-  status: string;
-  price: string;
-  duration: number;
-  products: [{
-    name: string;
-  }
-  ];
+  category: string;
+  units: number;
+  minimum: number;
+  price: number;
 }
 
-export default function ProductCard() {
+export default function ProductCard({
+  name,
+  category,
+  units,
+  minimum,
+  price,
+}: ProductCardProps) {
+  const stockLevel = Math.min(Math.round((units / (minimum * 2 || 1)) * 100), 100);
+  const isLowStock = units <= minimum;
 
   return (
-    <div className="w-full grid auto-rows-auto md:grid-rows-3 h-fit p-4 bg-slate-50 border shadow-md rounded-md">
+    <div className="w-full flex flex-col gap-4 p-4 bg-white border shadow-sm rounded-xl hover:shadow-md transition-shadow">
       {/* TITLE AND CONTROLS */}
-      <div className="w-full grid grid-cols-2 space-x-4">
-        <div className="space-x-3">
-          <label className="">
-            Produto A
-          </label>
-
-          <span className="space-x-2">
-            <Badge>Teste</Badge>
-            <Badge>Teste</Badge>
-          </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h3 className="font-bold text-lg">{name}</h3>
+          <Badge variant="secondary">{category}</Badge>
+          {isLowStock && <Badge variant="destructive">Estoque Baixo</Badge>}
         </div>
 
-        <div className="flex space-x-3 justify-end">
-          <Button variant={"secondary"} className=" w-11 h-11 bg-slate-300 hover:bg-yellow-400 rounded-full shadow-md">
-            <Edit />
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
+            <Edit className="w-4 h-4" />
           </Button>
-
-          <Button variant={"ghost"} className="w-11 h-11 bg-slate-300 hover:bg-destructive rounded-full shadow-md">
-            <Trash2 />
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10">
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* PRODUCT INFO */}
-      <div className="grid  grid-cols-3 w-fit h-fit">
-        <div className="grid grid-rows-1 sm:grid-rows-2 space-x-3  p-4 text-center">
-          <label>Quantidade:</label>
-          <span>100</span>
+      <div className="grid grid-cols-3 gap-4 border-y py-3">
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold text-slate-500 uppercase">Quantidade</span>
+          <span className="font-medium">{units} un</span>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-rows-2 space-x-3 p-4 text-center">
-          <label>Minimo:</label>
-          <span>10</span>
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold text-slate-500 uppercase">Mínimo</span>
+          <span className="font-medium">{minimum} un</span>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-rows-2 space-x-3 p-4 text-center">
-
-          <label>Preço: </label>
-          <span>R$ 58,00</span>
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold text-slate-500 uppercase">Preço</span>
+          <span className="font-medium">R$ {price.toFixed(2)}</span>
         </div>
-
-
       </div>
 
       {/* STOCK LEVEL */}
-      <div className="m-auto w-full ">
-        <Field className="w-full max-w-6xl">
-          <FieldLabel>
+      <div className="w-full">
+        <Field>
+          <FieldLabel className="flex justify-between text-xs mb-1">
             <span>Nível do Estoque</span>
-            <span className="ml-auto">33  %</span>
+            <span className={isLowStock ? "text-destructive font-bold" : ""}>{stockLevel}%</span>
           </FieldLabel>
-          <Progress value={33} />
+          <Progress value={stockLevel} className="h-2" />
         </Field>
       </div>
-
     </div>
-  )
+  );
 }

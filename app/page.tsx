@@ -5,18 +5,25 @@ import HomeStats from "@/components/stats/home_stats"
 
 export default function Page() {
   return (
-    <div className="w-full border flex flex-col min-h-svh  p-6">
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    <div className="w-full flex flex-col min-h-svh p-3 md:p-6 bg-slate-50/30 overflow-x-hidden">
+      <div className="flex flex-1 flex-col gap-6 md:gap-8 pt-0">
         <HomeStats />
+        
         {/* GRAFICOS */}
-        <div className="grid auto-rows-auto md:grid-rows-1 min-h-[50px] rounded-xl bg-muted/50   ">
-          <ChartArea />
-          <div className="grid auto-rows-auto md:grid-cols-2">
-            <ChartBar />
-            <ChartLine />
+        <div className="flex flex-col gap-6">
+          <div className="w-full overflow-hidden">
+            <ChartArea />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="overflow-hidden">
+              <ChartBar />
+            </div>
+            <div className="overflow-hidden">
+              <ChartLine />
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   )

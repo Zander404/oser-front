@@ -1,109 +1,140 @@
+"use client"
+
+import { useState } from "react";
 import ServiceCard from "@/components/cards/service_card";
 import ServiceInfoCard from "@/components/cards/service_info_card";
-import { description } from "@/components/charts/bar_chart";
 import DialogService from "@/components/dialogs/dialog_service";
-import { Button } from "@/components/ui/button";
+import DialogOrder from "@/components/dialogs/dialog_order";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 
+const initialServices = [
+  {
+    id: "serv-1",
+    name: "teste 1",
+    description: "Consultoria Metereologica",
+    status: "Ativo",
+    price: "54",
+    duration: 1,
+    kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
+  },
+  {
+    id: "serv-2",
+    name: "teste 2",
+    description: "teastaas dasdsad",
+    status: "Desativo",
+    price: "54",
+    duration: 1,
+    kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
+  },
+];
 
-const services = [
-  {
-    name: "teste 1", description: "Consultoria Metereologica", status: "Ativo", price: "54", duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
-  },
-  {
-    name: "teste 2", description: "teastaas dasdsad", status: "Desativo", price: "54", duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
-  },
-  {
-    name: "teste 3", description: "tesadas ", status: "Ativo", price: "54", duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
-  },
-  {
-    name: "teste 4", description: "dadasdasdasd", status: "Desativo", price: "54", duration: 1, kits: [{ name: "Produto A (2x) - Estoque 100" }, { name: "Produto B (2x) - Estoque 100" }]
-  },
-]
+const initialOrders = [
+  { id: 1, status: "Pronto", servico: "Montagem de Camas", cliente: "Teste 1", date: "28/03/2025" },
+  { id: 2, status: "Pendente", servico: "Montagem de Camas", cliente: "Teste 1", date: "28/03/2025" },
+];
 
 export default function Page() {
-  return (
-    <div className="w-full border flex flex-col min-h-svh p-6">
-      {/* NAVBAR */}
-      <div className="grid auto-rows-auto md:grid-cols-2 w-full pt-8 justify-between ">
+  const [services, setServices] = useState(initialServices);
+  const [orders, setOrders] = useState(initialOrders);
 
+  const handleAddService = (newService: any) => {
+    setServices((prev) => [
+      ...prev,
+      {
+        ...newService,
+        status: "Ativo",
+        price: newService.price.toString(),
+        kits: newService.products.map((p: any) => ({ name: `${p.name} (${p.quantity}x)` }))
+      }
+    ]);
+  };
+
+  const handleAddOrder = (newOrder: any) => {
+    setOrders((prev) => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        status: "Pendente",
+        servico: "Serviço Selecionado", // In a real app, this would be looked up by serviceId
+        cliente: newOrder.customerName,
+        date: newOrder.date
+      }
+    ]);
+  };
+
+  return (
+    <div className="w-full flex flex-col min-h-svh p-3 md:p-6 overflow-x-hidden">
+      {/* NAVBAR */}
+      <div className="flex flex-col md:flex-row gap-4 md:items-center w-full pt-4 md:pt-8 justify-between ">
         {/* TITLE */}
-        <div className="">
-          <h1 className="text-5xl font-extrabold">Servico e Pedidos</h1>
-          <h2 className="font-heading text-slate-600">Gerenciar serviços e acompanhamento de pedidos</h2>
+        <div className="space-y-1">
+          <h1 className="text-3xl md:text-5xl font-extrabold">Serviço e Pedidos</h1>
+          <h2 className="text-sm md:text-base font-heading text-slate-600">Gerenciar serviços e acompanhamento de pedidos</h2>
         </div>
 
-
-        <div className="flex flex-row justify-end align-middle space-x-4">
-          <DialogService title="Novo Servico" icon={Plus} />
+        <div className="flex flex-row justify-end align-middle items-center">
+          <DialogService title="Novo Serviço" icon={Plus} onSuccess={handleAddService} />
         </div>
       </div>
 
-      <div className="pt-10 px-4">
-        <Tabs className="" defaultValue="servico">
-          <TabsList className="w-full" variant={"line"}>
-            <TabsTrigger value="servico">Serviço</TabsTrigger>
-            <TabsTrigger value="pedidos_pendentes">Pedidos Pendentes</TabsTrigger>
-            <TabsTrigger value="pedidos_prontos">Pedidos Prontos</TabsTrigger>
-            <TabsTrigger value="historico">Histórico</TabsTrigger>
-          </TabsList>
+      <div className="pt-6 md:pt-10">
+        <Tabs className="w-full" defaultValue="servico">
+          <div className="overflow-x-auto no-scrollbar">
+            <TabsList className="w-full justify-start md:justify-center border-b" variant={"line"}>
+              <TabsTrigger value="servico" className="whitespace-nowrap px-4 py-2">Serviço</TabsTrigger>
+              <TabsTrigger value="pedidos_pendentes" className="whitespace-nowrap px-4 py-2">Pedidos Pendentes</TabsTrigger>
+              <TabsTrigger value="pedidos_prontos" className="whitespace-nowrap px-4 py-2">Pedidos Prontos</TabsTrigger>
+              <TabsTrigger value="historico" className="whitespace-nowrap px-4 py-2">Histórico</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="servico" className="w-full pt-6 mt-0">
-            <div className="p-4 borde space-y-2 rounded-x">
-              {
-                Array.isArray(services) ? (
-                  services.map((data, index) =>
-                  (
-                    <ServiceCard key={index} name={data.name} description={data.description} status={data.status} price={data.price} duration={data.duration} products={data.kits} />
-                  ))
-                ) : (
-                  <div></div>
-                )
-
-              }
+            <div className="space-y-3 md:space-y-4">
+              {services.map((data, index) => (
+                <ServiceCard
+                  key={index}
+                  id={data.id}
+                  name={data.name}
+                  description={data.description}
+                  status={data.status}
+                  price={data.price}
+                  duration={data.duration}
+                  products={data.kits}
+                  onAddOrder={handleAddOrder}
+                />
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="pedidos_pendentes" className="w-full pt-6 mt-0">
-            <div className="p-4 rounded-xl">
-              Pedidos Pendentes
-              <ServiceInfoCard id={1} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={2} status="Pendente" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={3} status="Cancelado" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={4} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={5} status="Pendente" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-
-
-
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-bold mb-2 md:mb-4 px-2">Pedidos Pendentes</h3>
+              {orders.filter(o => o.status === "Pendente").map((order) => (
+                <ServiceInfoCard key={order.id} {...order} />
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="pedidos_prontos" className="w-full pt-6 mt-0">
-            <div className="p-4 rounded-xl">
-              Pedidos Pendentes
-              <ServiceInfoCard id={1} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={2} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={3} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={4} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={5} status="Pronto" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-bold mb-2 md:mb-4 px-2">Pedidos Prontos</h3>
+              {orders.filter(o => o.status === "Pronto").map((order) => (
+                <ServiceInfoCard key={order.id} {...order} />
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="historico" className="w-full pt-6 mt-0">
-            <div className="p-4 rounded-xl">
-              Pedidos Pendentes
-              <ServiceInfoCard id={1} status="Concluido" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={2} status="Concluido" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={3} status="Concluido" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={4} status="Concluido" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
-              <ServiceInfoCard id={5} status="Concluido" servico="Montagem de Camas" cliente="Teste 1" date="28/03/2025" />
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-bold mb-2 md:mb-4 px-2">Histórico</h3>
+              {orders.filter(o => o.status === "Concluido" || o.status === "Cancelado").map((order) => (
+                <ServiceInfoCard key={order.id} {...order} />
+              ))}
             </div>
           </TabsContent>
-
         </Tabs>
       </div>
-
     </div>
   )
 }

@@ -5,15 +5,16 @@ import DialogService from "../dialogs/dialog_service";
 import DialogOrder from "../dialogs/dialog_order";
 
 interface ServiceCardProps {
+  id?: string;
   name: string;
   description: string;
   status: string;
   price: string;
   duration: number;
-  products: [{
+  products: {
     name: string;
-  }
-  ];
+  }[];
+  onAddOrder?: (data: any) => void;
 }
 
 export default function ServiceCard(props: ServiceCardProps) {
@@ -81,8 +82,6 @@ export default function ServiceCard(props: ServiceCardProps) {
       </div>
 
       <div className="flex md:flex-row flex-col justify-end pt-3">
-        <DialogOrder />
-
         <DialogService title={""} icon={Edit} />
 
         <Button className="rounded-full md:w-11 h-11 bg-slate-400  hover:shadow-2xl hover:bg-destructive">
