@@ -4,25 +4,26 @@ import { Button } from "../ui/button";
 
 
 
+
 interface StockServiceInfoCardProps {
   id: number;
   status: "Pronto" | "Pendente" | "Cancelado" | string;
   cliente: string;
 
-  servico: [{
+  servico: {
     name: string;
     description: string;
     status: string;
     price: number;
     duration: number;
-    kits: [
-      { name: string }
-    ]
+    kits: { name: string }[]
 
-  }
-  ];
+  }[]
+  ;
   date: string;
 }
+
+
 
 
 
