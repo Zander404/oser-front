@@ -3,7 +3,7 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "components/ui/sidebar"
 import Image from "next/image"
 import logoImg from "@/public/next.svg"
-import { BadgeDollarSignIcon, Box, Hammer, Home } from "lucide-react"
+import { BadgeDollarSignIcon, Box, Group, Hammer, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -16,6 +16,7 @@ export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { label: "Financeiro", path: "/finance", icon: BadgeDollarSignIcon },
     { label: "Servicos", path: "/service", icon: Hammer },
     { label: "Estoque", path: "/stock", icon: Box },
+    { label: "Funcionario", path: "/worker", icon: Group }
 
   ]
 
