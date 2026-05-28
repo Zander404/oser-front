@@ -16,7 +16,7 @@ export function AppSideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { label: "Financeiro", path: "/finance", icon: BadgeDollarSignIcon },
     { label: "Ordem de Servico", path: "/service", icon: Hammer },
     { label: "Estoque", path: "/stock", icon: Box },
-    { label: "Funcionarios", path: "/workers", icon: Group }
+    { label: "Funcionários", path: "/workers", icon: Group }
 
   ]
 
