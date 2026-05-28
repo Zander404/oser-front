@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "@/components/cards/product_stock_card";
 import StockServiceInfoCard from "@/components/cards/stock_service_info_card";
 import DialogHistory from "@/components/dialogs/dialog_history";
@@ -9,6 +9,7 @@ import DialogProduct from "@/components/dialogs/dialog_product";
 import DialogOrder from "@/components/dialogs/dialog_order";
 import StockStats from "@/components/stats/stock_stats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 const initialProducts = [
   {
@@ -54,11 +55,31 @@ const initialServices = [
     status: "Pendente",
     date: "26/05/2026"
   },
+  {
+    id: 2,
+    cliente: "Teste 1",
+    services: [{
+      name: "Montagem de Camas", description: "Montagem de moveis", status: "Ativo", price: 150, duration: 2, kits: [{ name: "Kit Parafusos (1x)" }, { name: "Manual (1x)" }]
+    }],
+    status: "Pendente",
+    date: "28/03/2025"
+  },
 ]
 
 export default function Page() {
   const [products, setProducts] = useState(initialProducts);
   const [services, setServices] = useState(initialServices);
+
+  useEffect(() => {
+    const completedIds = JSON.parse(localStorage.getItem("completedOrderIds") || "[]");
+    const finishedIds = JSON.parse(localStorage.getItem("finishedOrderIds") || "[]");
+    
+    setServices(prev => prev.map(s => {
+      if (finishedIds.includes(s.id)) return { ...s, status: "Concluido" };
+      if (completedIds.includes(s.id)) return { ...s, status: "Pronto" };
+      return s;
+    }));
+  }, []);
 
   const handleAddProduct = (newProduct: any) => {
     setProducts((prev) => [
@@ -72,6 +93,21 @@ export default function Page() {
         price: newProduct.price,
       }
     ]);
+  };
+
+  const handleCompleteKit = (id: number) => {
+    setServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, status: "Pronto" } : s))
+    );
+
+    const completedIds = JSON.parse(localStorage.getItem("completedOrderIds") || "[]");
+    if (!completedIds.includes(id)) {
+      localStorage.setItem("completedOrderIds", JSON.stringify([...completedIds, id]));
+    }
+
+    toast.success(`Pedido #${id} finalizado e enviado para serviços!`, {
+      description: "O kit foi montado com sucesso.",
+    });
   };
 
 
@@ -108,9 +144,17 @@ export default function Page() {
             {/* PEDIDO PENDENTE */}
             <div className="space-y-3 md:space-y-4">
               {
-                Array.isArray(services) && services.length > 0 ? (
-                  services.map((data, index) => (
-                    <StockServiceInfoCard key={`${index}-${index}`} id={data.id} cliente={data.cliente} date={data.date} servico={data.services} status={data.status} />
+                Array.isArray(services) && services.filter(s => s.status !== "Pronto" && s.status !== "Concluido").length > 0 ? (
+                  services.filter(s => s.status !== "Pronto" && s.status !== "Concluido").map((data, index) => (
+                    <StockServiceInfoCard
+                      key={`${index}-${index}`}
+                      id={data.id}
+                      cliente={data.cliente}
+                      date={data.date}
+                      servico={data.services}
+                      status={data.status}
+                      onComplete={handleCompleteKit}
+                    />
                   ))) : (
 
                   <div className=" w-full flex justify-center items-center rounded-xl  border border-slate-200 bg-slate-50 h-32 text-muted-foreground">

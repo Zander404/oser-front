@@ -39,17 +39,19 @@ interface DialogServiceProps {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   onSuccess?: (data: ServiceFormValues) => void;
+  initialData?: Partial<ServiceFormValues>;
+  trigger?: React.ReactNode;
 }
 
-export default function DialogService({ title, icon: Icon, onSuccess }: DialogServiceProps) {
+export default function DialogService({ title, icon: Icon, onSuccess, initialData, trigger }: DialogServiceProps) {
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema) as any,
     defaultValues: {
-      name: "",
-      description: "",
-      price: 0,
-      duration: 1,
-      products: [],
+      name: initialData?.name || "",
+      description: initialData?.description || "",
+      price: initialData?.price || 0,
+      duration: initialData?.duration || 1,
+      products: initialData?.products || [],
     },
   });
 
@@ -59,23 +61,24 @@ export default function DialogService({ title, icon: Icon, onSuccess }: DialogSe
   });
 
   function onSubmit(data: ServiceFormValues) {
-    console.log(data);
     onSuccess?.(data);
-    toast.success("Serviço criado com sucesso!");
-    form.reset();
+    toast.success(initialData ? "Serviço atualizado!" : "Serviço criado com sucesso!");
+    if (!initialData) form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && form.reset()}>
+    <Dialog onOpenChange={(open) => !open && !initialData && form.reset()}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
-          <Icon className="w-5 h-5 mr-2" />
-          {title}
-        </Button>
+        {trigger || (
+          <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
+            <Icon className="w-5 h-5 mr-2" />
+            {title}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Serviço</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Serviço" : "Novo Serviço"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -183,7 +186,7 @@ export default function DialogService({ title, icon: Icon, onSuccess }: DialogSe
               </Button>
             </DialogClose>
             <Button type="submit" className="bg-slate-800">
-              Criar Serviço
+              {initialData ? "Salvar Alterações" : "Criar Serviço"}
             </Button>
           </DialogFooter>
         </form>

@@ -41,36 +41,40 @@ type OrderFormValues = z.infer<typeof orderSchema>;
 interface DialogOrderProps {
   onSuccess?: (data: OrderFormValues) => void;
   defaultServiceId?: string;
+  initialData?: Partial<OrderFormValues>;
+  title?: string;
+  trigger?: React.ReactNode;
 }
 
-export default function DialogOrder({ onSuccess, defaultServiceId }: DialogOrderProps) {
+export default function DialogOrder({ onSuccess, defaultServiceId, initialData, title, trigger }: DialogOrderProps) {
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
     defaultValues: {
-      customerName: "",
-      serviceId: defaultServiceId || "",
-      date: new Date().toISOString().split("T")[0],
-      notes: "",
+      customerName: initialData?.customerName || "",
+      serviceId: initialData?.serviceId || defaultServiceId || "",
+      date: initialData?.date || new Date().toISOString().split("T")[0],
+      notes: initialData?.notes || "",
     },
   });
 
   function onSubmit(data: OrderFormValues) {
-    console.log(data);
     onSuccess?.(data);
-    toast.success("Pedido criado com sucesso!");
-    form.reset();
+    toast.success(initialData ? "Pedido atualizado!" : "Pedido criado com sucesso!");
+    if (!initialData) form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && form.reset()}>
+    <Dialog onOpenChange={(open) => !open && !initialData && form.reset()}>
       <DialogTrigger asChild>
-        <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
-          <ShoppingCart className="w-5 h-5 mr-2" /> Criar Pedido
-        </Button>
+        {trigger || (
+          <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
+            <ShoppingCart className="w-5 h-5 mr-2" /> Criar Pedido
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Criar Novo Pedido</DialogTitle>
+          <DialogTitle>{title || (initialData ? "Editar Pedido" : "Criar Novo Pedido")}</DialogTitle>
           <DialogDescription className="flex items-center p-3 bg-emerald-50 text-emerald-900 rounded-lg border border-emerald-100">
             <Info className="w-5 h-5 mr-2" />
             <span>Preencha os dados do cliente e selecione o serviço solicitado.</span>
@@ -136,7 +140,7 @@ export default function DialogOrder({ onSuccess, defaultServiceId }: DialogOrder
               </Button>
             </DialogClose>
             <Button type="submit" className="bg-slate-800">
-              Confirmar Pedido
+              {initialData ? "Salvar Alterações" : "Confirmar Pedido"}
             </Button>
           </DialogFooter>
         </form>

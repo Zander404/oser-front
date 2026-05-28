@@ -21,6 +21,7 @@ interface StockServiceInfoCardProps {
   }[]
   ;
   date: string;
+  onComplete?: (id: number) => void;
 }
 
 
@@ -31,13 +32,14 @@ interface StockServiceInfoCardProps {
 export default function StockServiceInfoCard(props: StockServiceInfoCardProps) {
   const statusStyles: Record<string, string> = {
     Pendente: "bg-amber-500 text-white border-none",
+    Pronto: "bg-emerald-500 text-white border-none",
   };
 
   const currentStyle = statusStyles[props.status] || "bg-slate-500 text-white"
 
 
   return (
-    <div className="grid grid-cols-2 w-full p-4 rounded-2xl space-y-4 bg-yellow-100 border border-yellow-500">
+    <div className={`grid grid-cols-2 w-full p-4 rounded-2xl space-y-4 border ${props.status === "Pronto" ? "bg-emerald-50 border-emerald-500" : "bg-yellow-100 border-yellow-500"}`}>
 
       <div className="flex flex-col justify-center space-y-2">
         <div className="flex items-center gap-4">
@@ -100,8 +102,20 @@ export default function StockServiceInfoCard(props: StockServiceInfoCardProps) {
       </div>
 
       <div className="flex justify-end pr-2">
-        <Button className="h-11 rounded-full">
-          <CheckCircle2Icon /> Montar Kit
+        <Button
+          onClick={() => props.onComplete && props.onComplete(props.id)}
+          disabled={props.status === "Pronto"}
+          className={`h-11 rounded-full ${props.status === "Pronto" ? "bg-emerald-600 hover:bg-emerald-600" : ""}`}
+        >
+          {props.status === "Pronto" ? (
+            <>
+              <CheckIcon /> Kit Montado
+            </>
+          ) : (
+            <>
+              <CheckCircle2Icon /> Montar Kit
+            </>
+          )}
         </Button>
       </div>
     </div>

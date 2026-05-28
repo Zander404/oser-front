@@ -5,7 +5,7 @@ import DialogService from "../dialogs/dialog_service";
 import DialogOrder from "../dialogs/dialog_order";
 
 interface ServiceCardProps {
-  id?: string;
+  id: string;
   name: string;
   description: string;
   status: string;
@@ -15,13 +15,15 @@ interface ServiceCardProps {
     name: string;
   }[];
   onAddOrder?: (data: any) => void;
+  onEdit?: (id: string, data: any) => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function ServiceCard(props: ServiceCardProps) {
   const isActive = props.status === "Ativo";
 
   return (
-    <div className="w-full grid auto-rows-auto md:grid-cols-2 h-fit p-4 bg-slate-50 border shadow-md rounded-md">
+    <div className="w-full grid auto-rows-auto md:grid-cols-2 h-fit p-4 bg-white border shadow-sm rounded-2xl hover:shadow-md transition-all">
       <div className="w-full space-y-4">
 
         {/* TITLE */}
@@ -81,11 +83,32 @@ export default function ServiceCard(props: ServiceCardProps) {
 
       </div>
 
-      <div className="flex md:flex-row flex-col justify-end pt-3">
-        <DialogService title={""} icon={Edit} />
+      <div className="flex flex-row items-center justify-end gap-2 pt-4 md:pt-0">
+        <DialogService
+          title="Editar Serviço"
+          icon={Edit}
+          initialData={{
+            name: props.name,
+            description: props.description,
+            price: Number(props.price),
+            duration: props.duration,
+            products: props.products.map(p => ({ name: p.name, quantity: 1 }))
+          }}
+          onSuccess={(data) => props.onEdit?.(props.id, data)}
+          trigger={
+            <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100">
+              <Edit className="size-5 text-slate-600" />
+            </Button>
+          }
+        />
 
-        <Button className="rounded-full md:w-11 h-11 bg-slate-400  hover:shadow-2xl hover:bg-destructive">
-          <Trash2 />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full hover:bg-rose-50 hover:text-rose-600"
+          onClick={() => props.onDelete?.(props.id)}
+        >
+          <Trash2 className="size-5" />
         </Button>
       </div>
     </div >
