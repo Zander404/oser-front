@@ -7,9 +7,9 @@ import DialogOrder from "../dialogs/dialog_order";
 interface PedidoInfoProps {
   id: number;
   status: "Pronto" | "Pendente" | "Cancelado" | "Concluido" | string;
-
   servico: string;
-  cliente: string
+  serviceId?: string;
+  cliente: string;
   date: string;
   onFinish?: (id: number) => void;
   onDelete?: (id: number) => void;
@@ -52,7 +52,7 @@ export default function ServiceInfoCard(props: PedidoInfoProps) {
             title="Editar Pedido"
             initialData={{
               customerName: props.cliente,
-              serviceId: "serv-1", // Fallback for mock
+              serviceId: props.serviceId || "serv-1",
               date: props.date,
             }}
             onSuccess={(data) => props.onEdit!(props.id, data)}

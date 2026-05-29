@@ -3,21 +3,28 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { Field, FieldLabel } from "../ui/field";
+import DialogProduct from "../dialogs/dialog_product";
 
 interface ProductCardProps {
+  id: number;
   name: string;
   category: string;
   units: number;
   minimum: number;
   price: number;
+  onEdit?: (id: number, data: any) => void;
+  onDelete?: (id: number) => void;
 }
 
 export default function ProductCard({
+  id,
   name,
   category,
   units,
   minimum,
   price,
+  onEdit,
+  onDelete,
 }: ProductCardProps) {
   const stockLevel = Math.min(Math.round((units / (minimum * 2 || 1)) * 100), 100);
   const isLowStock = units <= minimum;
@@ -33,10 +40,21 @@ export default function ProductCard({
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10">
+          <DialogProduct
+            initialData={{ id, name, category, units, minUnits: minimum, price }}
+            onSuccess={(data) => onEdit?.(id, data)}
+            trigger={
+              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
+                <Edit className="w-4 h-4" />
+              </Button>
+            }
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete?.(id)}
+            className="h-9 w-9 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>

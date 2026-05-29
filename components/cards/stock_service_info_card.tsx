@@ -80,21 +80,22 @@ export default function StockServiceInfoCard(props: StockServiceInfoCardProps) {
           </div>
         </div>
 
-        <div className=" grid grid-rows-2">
-          <label>Produtos Necessários: </label>
-          <div className="pl-2 space-x-1">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-semibold uppercase text-slate-500">Produtos Necessários: </label>
+          <div className="flex flex-wrap gap-1">
             {
               Array.isArray(props.servico) ? (
-                props.servico.map((service) => (
-                  <Badge className={`w-fit h-6 px-3 font-semibold rounded-full bg-emerald-400`}>
-                    {service.name}
-                  </Badge>
-
-                ))
+                props.servico.flatMap((service) => 
+                  service.kits?.map((kit, idx) => (
+                    <Badge key={`${service.name}-${idx}`} className="bg-amber-100 text-amber-900 hover:bg-amber-100 border-amber-200 shadow-sm">
+                      {kit.name}
+                    </Badge>
+                  )) || []
+                )
               )
                 :
                 (
-                  <span> Nenhum Produto Necessário </span>
+                  <span className="text-sm text-slate-500 italic"> Nenhum Produto Necessário </span>
                 )
             }
           </div>

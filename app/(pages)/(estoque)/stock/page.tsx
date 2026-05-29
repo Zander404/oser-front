@@ -22,14 +22,6 @@ const initialProducts = [
   },
   {
     id: 2,
-    name: "Produto A",
-    units: 100,
-    minimum: 20,
-    price: 50,
-    category: "CATEGORIA 1"
-  },
-  {
-    id: 3,
     name: "Produto C",
     units: 100,
     minimum: 20,
@@ -37,7 +29,7 @@ const initialProducts = [
     category: "CATEGORIA 3"
   },
   {
-    id: 4,
+    id: 3,
     name: "Produto B",
     units: 100,
     minimum: 20,
@@ -68,42 +60,77 @@ const initialServices = [
 
 export default function Page() {
   const [products, setProducts] = useState(initialProducts);
-  const [services, setServices] = useState(initialServices);
+  const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
-    const completedIds = JSON.parse(localStorage.getItem("completedOrderIds") || "[]");
-    const finishedIds = JSON.parse(localStorage.getItem("finishedOrderIds") || "[]");
-    
-    setServices(prev => prev.map(s => {
-      if (finishedIds.includes(s.id)) return { ...s, status: "Concluido" };
-      if (completedIds.includes(s.id)) return { ...s, status: "Pronto" };
-      return s;
-    }));
+    const savedOrders = localStorage.getItem("osr_orders");
+    if (savedOrders) {
+      setServices(JSON.parse(savedOrders));
+    } else {
+      setServices(initialServices.map(s => ({
+        id: s.id,
+        status: s.status,
+        customerName: s.cliente,
+        date: s.date,
+        serviceName: s.services[0]?.name || "Serviço",
+        products: s.services[0]?.kits || []
+      })));
+    }
+
+    const savedProducts = localStorage.getItem("osr_products");
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    }
   }, []);
 
+  const saveOrders = (newOrders: any[]) => {
+    setServices(newOrders);
+    localStorage.setItem("osr_orders", JSON.stringify(newOrders));
+  };
+
   const handleAddProduct = (newProduct: any) => {
-    setProducts((prev) => [
-      ...prev,
+    const updatedProducts = [
+      ...products,
       {
-        id: prev.length + 1,
+        id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
         name: newProduct.name,
         category: newProduct.category,
         units: newProduct.units,
         minimum: newProduct.minUnits,
         price: newProduct.price,
       }
-    ]);
+    ];
+    setProducts(updatedProducts);
+    localStorage.setItem("osr_products", JSON.stringify(updatedProducts));
+  };
+
+  const handleEditProduct = (id: number, data: any) => {
+    const updatedProducts = products.map((p) =>
+      p.id === id
+        ? {
+          ...p,
+          name: data.name,
+          category: data.category,
+          units: data.units,
+          minimum: data.minUnits,
+          price: data.price,
+        }
+        : p
+    );
+    setProducts(updatedProducts);
+    localStorage.setItem("osr_products", JSON.stringify(updatedProducts));
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    const updatedProducts = products.filter((p) => p.id !== id);
+    setProducts(updatedProducts);
+    localStorage.setItem("osr_products", JSON.stringify(updatedProducts));
+    toast.error("Produto removido do estoque.");
   };
 
   const handleCompleteKit = (id: number) => {
-    setServices((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status: "Pronto" } : s))
-    );
-
-    const completedIds = JSON.parse(localStorage.getItem("completedOrderIds") || "[]");
-    if (!completedIds.includes(id)) {
-      localStorage.setItem("completedOrderIds", JSON.stringify([...completedIds, id]));
-    }
+    const newOrders = services.map((s) => (s.id === id ? { ...s, status: "Pronto" } : s));
+    saveOrders(newOrders);
 
     toast.success(`Pedido #${id} finalizado e enviado para serviços!`, {
       description: "O kit foi montado com sucesso.",
@@ -144,14 +171,14 @@ export default function Page() {
             {/* PEDIDO PENDENTE */}
             <div className="space-y-3 md:space-y-4">
               {
-                Array.isArray(services) && services.filter(s => s.status !== "Pronto" && s.status !== "Concluido").length > 0 ? (
-                  services.filter(s => s.status !== "Pronto" && s.status !== "Concluido").map((data, index) => (
+                Array.isArray(services) && services.filter(s => s.status === "Pendente").length > 0 ? (
+                  services.filter(s => s.status === "Pendente").map((data, index) => (
                     <StockServiceInfoCard
-                      key={`${index}-${index}`}
+                      key={data.id}
                       id={data.id}
-                      cliente={data.cliente}
+                      cliente={data.customerName}
                       date={data.date}
-                      servico={data.services}
+                      servico={[{ name: data.serviceName, kits: data.products } as any]}
                       status={data.status}
                       onComplete={handleCompleteKit}
                     />
@@ -175,11 +202,14 @@ export default function Page() {
                   products.map((data) => (
                     <ProductCard
                       key={data.id}
+                      id={data.id}
                       name={data.name}
                       category={data.category}
                       units={data.units}
                       minimum={data.minimum}
                       price={data.price}
+                      onEdit={handleEditProduct}
+                      onDelete={handleDeleteProduct}
                     />
                   ))
                 ) : (

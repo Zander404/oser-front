@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChartBar } from "@/components/charts/bar_chart";
 import { ChartArea } from "@/components/charts/area_chart";
 import DialogTransaction from "@/components/dialogs/dialog_transaction";
 import CashFlowStats from "@/components/stats/cash_flow";
 import TransactionTable from "@/components/tables/transaction_table";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -22,9 +23,10 @@ const initialTransactions = [
     data: {
       title: "Venda de Produto A",
       type: "receita",
+      category: "Vendas",
       tags: ["Vendas"],
       status: "Concluido",
-      date: "28/05/2026",
+      date: "2026-05-28",
       value: "50.00"
     },
   },
@@ -33,32 +35,76 @@ const initialTransactions = [
     data: {
       title: "Aluguel Escritório",
       type: "despesa",
+      category: "Fixo",
       tags: ["Fixo"],
       status: "Pendente",
-      date: "28/05/2026",
+      date: "2026-05-28",
       value: "1200.00"
     },
   },
 ];
 
 export default function Page() {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const savedTransactions = localStorage.getItem("osr_transactions");
+    if (savedTransactions) {
+      setTransactions(JSON.parse(savedTransactions));
+    } else {
+      setTransactions(initialTransactions);
+    }
+  }, []);
+
+  const saveTransactions = (newT: any[]) => {
+    setTransactions(newT);
+    localStorage.setItem("osr_transactions", JSON.stringify(newT));
+  };
 
   const handleAddTransaction = (newT: any) => {
-    setTransactions((prev) => [
+    const updated = [
       {
-        id: (prev.length + 1).toString(),
+        id: Date.now().toString(),
         data: {
           title: newT.description,
           type: newT.type,
+          category: newT.category,
           tags: [newT.category],
-          status: newT.status,
+          status: newT.status === "concluido" ? "Concluido" : "Pendente",
           date: newT.date,
           value: newT.value.toString()
         }
       },
-      ...prev,
-    ]);
+      ...transactions,
+    ];
+    saveTransactions(updated);
+  };
+
+  const handleEditTransaction = (id: string, data: any) => {
+    const updated = transactions.map((t) =>
+      t.id === id
+        ? {
+          ...t,
+          data: {
+            ...t.data,
+            title: data.description,
+            type: data.type,
+            category: data.category,
+            tags: [data.category],
+            status: data.status === "concluido" ? "Concluido" : "Pendente",
+            date: data.date,
+            value: data.value.toString()
+          }
+        }
+        : t
+    );
+    saveTransactions(updated);
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    const updated = transactions.filter((t) => t.id !== id);
+    saveTransactions(updated);
+    toast.error("Transação excluída.");
   };
 
   return (
@@ -109,7 +155,11 @@ export default function Page() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 md:p-4 overflow-hidden">
           <h3 className="text-lg font-bold mb-4 px-2">Detalhamento de Transações</h3>
           <div className="overflow-x-auto">
-            <TransactionTable data={transactions} />
+            <TransactionTable 
+              data={transactions} 
+              onEdit={handleEditTransaction}
+              onDelete={handleDeleteTransaction}
+            />
           </div>
         </div>
       </div>

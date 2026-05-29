@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { Info, ShoppingCart } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,12 +42,14 @@ type OrderFormValues = z.infer<typeof orderSchema>;
 interface DialogOrderProps {
   onSuccess?: (data: OrderFormValues) => void;
   defaultServiceId?: string;
+  services?: { id: string; name: string }[];
   initialData?: Partial<OrderFormValues>;
   title?: string;
   trigger?: React.ReactNode;
 }
 
-export default function DialogOrder({ onSuccess, defaultServiceId, initialData, title, trigger }: DialogOrderProps) {
+export default function DialogOrder({ onSuccess, defaultServiceId, services, initialData, title, trigger }: DialogOrderProps) {
+  const [open, setOpen] = useState(false);
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
     defaultValues: {
@@ -57,14 +60,26 @@ export default function DialogOrder({ onSuccess, defaultServiceId, initialData, 
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        customerName: initialData?.customerName || "",
+        serviceId: initialData?.serviceId || defaultServiceId || "",
+        date: initialData?.date || new Date().toISOString().split("T")[0],
+        notes: initialData?.notes || "",
+      });
+    }
+  }, [open, defaultServiceId, initialData, form]);
+
   function onSubmit(data: OrderFormValues) {
     onSuccess?.(data);
     toast.success(initialData ? "Pedido atualizado!" : "Pedido criado com sucesso!");
-    if (!initialData) form.reset();
+    setOpen(false);
+    form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && !initialData && form.reset()}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
@@ -106,9 +121,17 @@ export default function DialogOrder({ onSuccess, defaultServiceId, initialData, 
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Serviços Disponíveis</SelectLabel>
-                        <SelectItem value="serv-1">Consultoria Meteorológica</SelectItem>
-                        <SelectItem value="serv-2">Montagem de Equipamentos</SelectItem>
-                        <SelectItem value="serv-3">Manutenção Preventiva</SelectItem>
+                        {services && services.length > 0 ? (
+                          services.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))
+                        ) : (
+                          <>
+                            <SelectItem value="serv-1">Consultoria Meteorológica</SelectItem>
+                            <SelectItem value="serv-2">Montagem de Equipamentos</SelectItem>
+                            <SelectItem value="serv-3">Manutenção Preventiva</SelectItem>
+                          </>
+                        )}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

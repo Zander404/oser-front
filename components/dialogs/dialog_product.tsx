@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,37 +32,54 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 interface DialogProductProps {
   onSuccess?: (data: ProductFormValues) => void;
+  initialData?: Partial<ProductFormValues> & { id?: number };
+  trigger?: React.ReactNode;
 }
 
-export default function DialogProduct({ onSuccess }: DialogProductProps) {
+export default function DialogProduct({ onSuccess, initialData, trigger }: DialogProductProps) {
+  const [open, setOpen] = useState(false);
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
-      name: "",
-      category: "",
-      units: 0,
-      minUnits: 0,
-      price: 0,
+      name: initialData?.name || "",
+      category: initialData?.category || "",
+      units: initialData?.units || 0,
+      minUnits: initialData?.minUnits || 0,
+      price: initialData?.price || 0,
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: initialData?.name || "",
+        category: initialData?.category || "",
+        units: initialData?.units || 0,
+        minUnits: initialData?.minUnits || 0,
+        price: initialData?.price || 0,
+      });
+    }
+  }, [open, initialData, form]);
+
   function onSubmit(data: ProductFormValues) {
-    console.log(data);
-    onSuccess?.(data);
-    toast.success("Produto criado com sucesso!");
-    form.reset();
+    onSuccess?.({ ...data, id: initialData?.id } as any);
+    toast.success(initialData ? "Produto atualizado!" : "Produto criado com sucesso!");
+    setOpen(false);
+    if (!initialData) form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && form.reset()}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-full md:w-fit h-11 bg-slate-800 hover:shadow-2xl">
-          <Plus /> Criar Produto
-        </Button>
+        {trigger || (
+          <Button className="rounded-full md:w-fit h-11 bg-slate-800 hover:shadow-2xl">
+            <Plus /> Criar Produto
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Criar Produto</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Produto" : "Criar Produto"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

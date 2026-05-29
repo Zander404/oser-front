@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,38 +48,56 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 interface DialogTransactionProps {
   onSuccess?: (data: TransactionFormValues) => void;
+  initialData?: Partial<TransactionFormValues> & { id?: string };
+  trigger?: React.ReactNode;
 }
 
-export default function DialogTransaction({ onSuccess }: DialogTransactionProps) {
+export default function DialogTransaction({ onSuccess, initialData, trigger }: DialogTransactionProps) {
+  const [open, setOpen] = useState(false);
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
-      date: new Date().toISOString().split("T")[0],
-      description: "",
-      category: "",
-      type: "receita",
-      value: 0,
-      status: "pendente",
+      date: initialData?.date || new Date().toISOString().split("T")[0],
+      description: initialData?.description || "",
+      category: initialData?.category || "",
+      type: (initialData?.type as any) || "receita",
+      value: initialData?.value || 0,
+      status: (initialData?.status as any) || "pendente",
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        date: initialData?.date || new Date().toISOString().split("T")[0],
+        description: initialData?.description || "",
+        category: initialData?.category || "",
+        type: (initialData?.type as any) || "receita",
+        value: initialData?.value || 0,
+        status: (initialData?.status as any) || "pendente",
+      });
+    }
+  }, [open, initialData, form]);
+
   function onSubmit(data: TransactionFormValues) {
-    console.log(data);
-    onSuccess?.(data);
-    toast.success("Transação salva com sucesso!");
-    form.reset();
+    onSuccess?.({ ...data, id: initialData?.id } as any);
+    toast.success(initialData ? "Transação atualizada!" : "Transação salva com sucesso!");
+    setOpen(false);
+    if (!initialData) form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && form.reset()}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-full md:w-fit h-11 bg-slate-800 hover:shadow-2xl">
-          <Plus /> Nova Transação
-        </Button>
+        {trigger || (
+          <Button className="rounded-full md:w-fit h-11 bg-slate-800 hover:shadow-2xl">
+            <Plus /> Nova Transação
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nova Transação</DialogTitle>
+          <DialogTitle>{initialData ? "Editar Transação" : "Nova Transação"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -184,7 +203,7 @@ export default function DialogTransaction({ onSuccess }: DialogTransactionProps)
               </Button>
             </DialogClose>
             <Button type="submit" className="bg-slate-800">
-              Salvar Transação
+              {initialData ? "Salvar Alterações" : "Salvar Transação"}
             </Button>
           </DialogFooter>
         </form>

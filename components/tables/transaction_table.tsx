@@ -2,34 +2,38 @@ import { ArrowDownLeft, ArrowUpRight, Pencil, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import DialogTransaction from "../dialogs/dialog_transaction";
 
 interface Transaction {
   id: string;
   data: {
     title: string;
     type: string;
-    tags: string | string[];
+    category?: string;
     status: string;
     date: string;
     value: string;
+    tags: string | string[];
   };
 }
 
 interface TransactionTableProps {
   data: Transaction[];
+  onEdit?: (id: string, data: any) => void;
+  onDelete?: (id: string) => void;
 }
 
-export default function TransactionTable({ data }: TransactionTableProps) {
+export default function TransactionTable({ data, onEdit, onDelete }: TransactionTableProps) {
   return (
     <Table>
       <TableCaption className="text-start"> Transações Recentes</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100ox]"></TableHead>
+          <TableHead className="w-[100px]"></TableHead>
           <TableHead>Descrição</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Valor</TableHead>
-          <TableHead>Ações</TableHead>
+          <TableHead className="text-right pr-6">Ações</TableHead>
         </TableRow>
       </TableHeader>
 
@@ -116,17 +120,32 @@ export default function TransactionTable({ data }: TransactionTableProps) {
                 {/* ACOES */}
                 <TableCell className="text-right pr-6 w-[100px] align-middle">
                   <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant={"ghost"}
-                      size={"icon"}
-                      className="h-9 w-9 text-slate-400 hover:text-slate-600"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <DialogTransaction
+                      initialData={{
+                        id: item.id,
+                        description: item.data.title,
+                        type: item.data.type as any,
+                        category: (item.data.category || (Array.isArray(item.data.tags) ? item.data.tags[0] : item.data.tags)) as string,
+                        status: item.data.status.toLowerCase() as any,
+                        value: parseFloat(item.data.value),
+                        date: item.data.date
+                      }}
+                      onSuccess={(data) => onEdit?.(item.id, data)}
+                      trigger={
+                        <Button
+                          variant={"ghost"}
+                          size={"icon"}
+                          className="h-9 w-9 text-slate-400 hover:text-slate-600"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      }
+                    />
 
                     <Button
                       variant={"ghost"}
                       size={"icon"}
+                      onClick={() => onDelete?.(item.id)}
                       className="h-9 w-9 text-slate-400 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,15 @@ import { Field, FieldError, FieldGroup } from "../ui/field";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { InputGroup, InputGroupTextarea } from "../ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { toast } from "sonner";
 
 const serviceSchema = z.object({
@@ -44,6 +54,9 @@ interface DialogServiceProps {
 }
 
 export default function DialogService({ title, icon: Icon, onSuccess, initialData, trigger }: DialogServiceProps) {
+  const [availableProducts, setAvailableProducts] = useState<{ id: string | number; name: string }[]>([]);
+  const [open, setOpen] = useState(false);
+
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema) as any,
     defaultValues: {
@@ -60,14 +73,37 @@ export default function DialogService({ title, icon: Icon, onSuccess, initialDat
     name: "products",
   });
 
+  useEffect(() => {
+    if (open) {
+      // Carrega produtos do estoque (localStorage)
+      const savedProducts = localStorage.getItem("osr_products");
+      console.log("Produtos carregados do localStorage:", savedProducts);
+      if (savedProducts) {
+        setAvailableProducts(JSON.parse(savedProducts));
+      } else {
+        // Fallback para os produtos iniciais se o localStorage estiver vazio
+        const initialProducts = [
+          { id: 1, name: "Produto A" },
+          { id: 2, name: "Produto B" },
+          { id: 3, name: "Produto C" }
+        ];
+        setAvailableProducts(initialProducts);
+      }
+    }
+  }, [open]);
+
   function onSubmit(data: ServiceFormValues) {
     onSuccess?.(data);
     toast.success(initialData ? "Serviço atualizado!" : "Serviço criado com sucesso!");
+    setOpen(false);
     if (!initialData) form.reset();
   }
 
   return (
-    <Dialog onOpenChange={(open) => !open && !initialData && form.reset()}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen && !initialData) form.reset();
+    }}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="w-full md:w-fit h-11 bg-slate-800 rounded-full hover:shadow-2xl">
@@ -129,7 +165,10 @@ export default function DialogService({ title, icon: Icon, onSuccess, initialDat
 
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b pb-2">
-                <h3 className="text-lg font-semibold">Kit de Produtos</h3>
+                <div className="space-y-0.5">
+                  <h3 className="text-lg font-semibold">Kit de Produtos</h3>
+                  <p className="text-xs text-muted-foreground">Selecione apenas produtos disponíveis no estoque</p>
+                </div>
                 <Button
                   type="button"
                   variant="outline"
@@ -145,9 +184,27 @@ export default function DialogService({ title, icon: Icon, onSuccess, initialDat
                   <div className="col-span-7">
                     <Field>
                       <Label>Produto</Label>
-                      <Input
-                        placeholder="Nome do produto"
-                        {...form.register(`products.${index}.name` as const)}
+                      <Controller
+                        name={`products.${index}.name` as const}
+                        control={form.control}
+                        render={({ field: selectField }) => (
+                          <Select onValueChange={selectField.onChange} value={selectField.value}>
+                            <SelectTrigger className="w-full bg-white">
+                              <SelectValue placeholder="Selecione um produto" />
+                            </SelectTrigger>
+                            <SelectContent position="popper">
+                              <SelectGroup>
+                                <SelectLabel>Produtos em Estoque</SelectLabel>
+                                {availableProducts.map((p) => (
+                                  <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                ))}
+                                {availableProducts.length === 0 && (
+                                  <SelectItem value="none" disabled>Nenhum produto no estoque</SelectItem>
+                                )}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                     </Field>
                   </div>
@@ -156,6 +213,7 @@ export default function DialogService({ title, icon: Icon, onSuccess, initialDat
                       <Label>Qtd</Label>
                       <Input
                         type="number"
+                        className="bg-white"
                         {...form.register(`products.${index}.quantity` as const)}
                       />
                     </Field>

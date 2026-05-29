@@ -13,7 +13,7 @@ const initialServices = [
   {
     id: "serv-1",
     name: "teste 1",
-    description: "Consultoria Metereologica",
+    description: "Manutenção",
     status: "Ativo",
     price: "54",
     duration: 1,
@@ -22,7 +22,7 @@ const initialServices = [
   {
     id: "serv-2",
     name: "teste 2",
-    description: "teastaas dasdsad",
+    description: "Montagem de Moveis",
     status: "Desativo",
     price: "54",
     duration: 1,
@@ -37,28 +37,30 @@ const initialOrders = [
 
 export default function Page() {
   const [services, setServices] = useState(initialServices);
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    const completedIds = JSON.parse(localStorage.getItem("completedOrderIds") || "[]");
-    const finishedIds = JSON.parse(localStorage.getItem("finishedOrderIds") || "[]");
-
-    setOrders(prev => prev.map(o => {
-      if (finishedIds.includes(o.id)) return { ...o, status: "Concluido" };
-      if (completedIds.includes(o.id)) return { ...o, status: "Pronto" };
-      return o;
-    }));
+    const savedOrders = localStorage.getItem("osr_orders");
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders));
+    } else {
+      setOrders(initialOrders.map(o => ({
+        ...o,
+        customerName: o.cliente,
+        serviceName: o.servico,
+        products: []
+      })));
+    }
   }, []);
 
-  const handleFinishOrder = (id: number) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "Concluido" } : o))
-    );
+  const saveOrders = (newOrders: any[]) => {
+    setOrders(newOrders);
+    localStorage.setItem("osr_orders", JSON.stringify(newOrders));
+  };
 
-    const finishedIds = JSON.parse(localStorage.getItem("finishedOrderIds") || "[]");
-    if (!finishedIds.includes(id)) {
-      localStorage.setItem("finishedOrderIds", JSON.stringify([...finishedIds, id]));
-    }
+  const handleFinishOrder = (id: number) => {
+    const newOrders = orders.map((o) => (o.id === id ? { ...o, status: "Concluido" } : o));
+    saveOrders(newOrders);
 
     toast.success(`Serviço do Pedido #${id} concluído!`, {
       description: "O pedido foi movido para o histórico.",
@@ -66,22 +68,22 @@ export default function Page() {
   };
 
   const handleDeleteOrder = (id: number) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+    const newOrders = orders.filter((o) => o.id !== id);
+    saveOrders(newOrders);
     toast.error(`Pedido #${id} excluído.`);
   };
 
   const handleEditOrder = (id: number, data: any) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id
-          ? {
-            ...o,
-            cliente: data.customerName,
-            date: data.date,
-          }
-          : o
-      )
+    const newOrders = orders.map((o) =>
+      o.id === id
+        ? {
+          ...o,
+          customerName: data.customerName,
+          date: data.date,
+        }
+        : o
     );
+    saveOrders(newOrders);
   };
 
   const handleDeleteService = (id: string) => {
@@ -119,16 +121,20 @@ export default function Page() {
   };
 
   const handleAddOrder = (newOrder: any) => {
-    setOrders((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
-        status: "Pendente",
-        servico: "Serviço Selecionado", // In a real app, this would be looked up by serviceId
-        cliente: newOrder.customerName,
-        date: newOrder.date
-      }
-    ]);
+    const service = services.find(s => s.id === newOrder.serviceId);
+
+    const orderToAdd = {
+      id: orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1,
+      status: "Pendente",
+      serviceId: newOrder.serviceId,
+      serviceName: service?.name || "Serviço Selecionado",
+      customerName: newOrder.customerName,
+      date: newOrder.date,
+      products: service?.kits || []
+    };
+
+    const newOrders = [...orders, orderToAdd];
+    saveOrders(newOrders);
   };
 
   return (
@@ -141,7 +147,11 @@ export default function Page() {
           <h2 className="text-sm md:text-base font-heading text-slate-600">Gerenciar serviços e acompanhamento de pedidos</h2>
         </div>
 
-        <div className="flex flex-row justify-end align-middle items-center">
+        <div className="flex flex-row items-center gap-3">
+          <DialogOrder
+            services={services.map(s => ({ id: s.id, name: s.name }))}
+            onSuccess={handleAddOrder}
+          />
           <DialogService title="Novo Serviço" icon={Plus} onSuccess={handleAddService} />
         </div>
       </div>
@@ -181,9 +191,14 @@ export default function Page() {
             <div className="space-y-3 md:space-y-4">
               <h3 className="font-bold mb-2 md:mb-4 px-2">Pedidos Pendentes</h3>
               {orders.filter(o => o.status === "Pendente").map((order) => (
-                                <ServiceInfoCard
+                <ServiceInfoCard
                   key={order.id}
-                  {...order}
+                  id={order.id}
+                  status={order.status}
+                  cliente={order.customerName}
+                  servico={order.serviceName}
+                  serviceId={order.serviceId}
+                  date={order.date}
                   onFinish={handleFinishOrder}
                   onDelete={handleDeleteOrder}
                   onEdit={handleEditOrder}
@@ -196,9 +211,14 @@ export default function Page() {
             <div className="space-y-3 md:space-y-4">
               <h3 className="font-bold mb-2 md:mb-4 px-2">Pedidos Prontos</h3>
               {orders.filter(o => o.status === "Pronto").map((order) => (
-                                <ServiceInfoCard
+                <ServiceInfoCard
                   key={order.id}
-                  {...order}
+                  id={order.id}
+                  status={order.status}
+                  cliente={order.customerName}
+                  servico={order.serviceName}
+                  serviceId={order.serviceId}
+                  date={order.date}
                   onFinish={handleFinishOrder}
                   onDelete={handleDeleteOrder}
                   onEdit={handleEditOrder}
@@ -211,9 +231,14 @@ export default function Page() {
             <div className="space-y-3 md:space-y-4">
               <h3 className="font-bold mb-2 md:mb-4 px-2">Histórico</h3>
               {orders.filter(o => o.status === "Concluido" || o.status === "Cancelado").map((order) => (
-                                <ServiceInfoCard
+                <ServiceInfoCard
                   key={order.id}
-                  {...order}
+                  id={order.id}
+                  status={order.status}
+                  cliente={order.customerName}
+                  servico={order.serviceName}
+                  serviceId={order.serviceId}
+                  date={order.date}
                   onFinish={handleFinishOrder}
                   onDelete={handleDeleteOrder}
                   onEdit={handleEditOrder}
